@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cron Generator - Easy Cron Schedule Expression</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            border: none;
+            padding: 12px 24px;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .cron-output {
+            font-family: 'Courier New', monospace;
+            font-size: 2rem;
+            background: #0f172a;
+            border: 2px solid var(--primary);
+            color: #22d3ee;
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .time-preview {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.1rem;
+            color: #22d3ee;
+        }
+        
+        .option-btn {
+            background: #334155;
+            border: 2px solid transparent;
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .option-btn:hover {
+            background: #475569;
+        }
+        
+        .option-btn.active {
+            background: var(--primary);
+            border-color: var(--primary-dark);
+        }
+        
+        .field-group {
+            margin-bottom: 20px;
+        }
+        
+        .field-label {
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .field-help {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        
+        .every-n-group {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .every-n-group.show {
+            display: flex;
+        }
+        
+        .every-n-group input {
+            width: 80px;
+            background: #334155;
+            border: 1px solid #475569;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .preset-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .preset-btn {
+            background: #334155;
+            border: none;
+            color: var(--text);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .preset-btn:hover {
+            background: var(--primary);
+        }
+        
+        .copy-btn {
+            background: #22c55e;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+        
+        .copy-btn:hover {
+            background: #16a34a;
+        }
+        
+        .next-runs {
+            margin-top: 20px;
+        }
+        
+        .next-run-item {
+            background: #0f172a;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-family: 'Courier New', monospace;
+            color: #22d3ee;
+        }
+        
+        @media (max-width: 768px) {
+            .cron-output {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h1><i class="fas fa-clock me-2"></i>Cron Generator</h1>
+            <p class="text-muted">Easy visual cron schedule expression builder</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card p-4 mb-4">
+                    <h5 class="mb-3"><i class="fas fa-magic me-2"></i>Quick Presets</h5>
+                    <div class="preset-btns">
+                        <button class="preset-btn" onclick="applyPreset('* * * * *')">Every minute</button>
+                        <button class="preset-btn" onclick="applyPreset('0 * * * *')">Every hour</button>
+                        <button class="preset-btn" onclick="applyPreset('0 0 * * *')">Daily at midnight</button>
+                        <button class="preset-btn" onclick="applyPreset('0 12 * * *')">Daily at noon</button>
+                        <button class="preset-btn" onclick="applyPreset('0 0 * * 0')">Weekly (Sunday)</button>
+                        <button class="preset-btn" onclick="applyPreset('0 0 1 * *')">Monthly (1st)</button>
+                        <button class="preset-btn" onclick="applyPreset('0 0 1 1 *')">Yearly (Jan 1st)</button>
+                    </div>
+                </div>
+                
+                <div class="card p-4">
+                    <h5 class="mb-4"><i class="fas fa-sliders me-2"></i>Custom Schedule</h5>
+                    
+                    <!-- Minute -->
+                    <div class="field-group">
+                        <div class="field-label">
+                            <i class="fas fa-clock"></i> Minute (0-59)
+                            <span class="badge bg-secondary">0</span>
+                        </div>
+                        <div class="field-help">Which minute(s) of the hour</div>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <button class="option-btn active" data-field="minute" data-value="*">Every</button>
+                            <button class="option-btn" data-field="minute" data-value="">Specific</button>
+                            <button class="option-btn" data-field="minute" data-value="*/">Every N</button>
+                        </div>
+                        <input type="number" class="form-control bg-dark text-light" id="minute-val" min="0" max="59" placeholder="0-59" style="display:none">
+                        <div class="every-n-group" id="minute-n-group">
+                            <span>Every</span>
+                            <input type="number" id="minute-n" min="1" max="59" value="5">
+                            <span>minutes</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Hour -->
+                    <div class="field-group">
+                        <div class="field-label">
+                            <i class="fas fa-hourglass-half"></i> Hour (0-23)
+                            <span class="badge bg-secondary">1</span>
+                        </div>
+                        <div class="field-help">Which hour(s) of the day</div>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <button class="option-btn active" data-field="hour" data-value="*">Every</button>
+                            <button class="option-btn" data-field="hour" data-value="">Specific</button>
+                            <button class="option-btn" data-field="hour" data-value="*/">Every N</button>
+                        </div>
+                        <input type="number" class="form-control bg-dark text-light" id="hour-val" min="0" max="23" placeholder="0-23" style="display:none">
+                        <div class="every-n-group" id="hour-n-group">
+                            <span>Every</span>
+                            <input type="number" id="hour-n" min="1" max="23" value="2">
+                            <span>hours</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Day of Month -->
+                    <div class="field-group">
+                        <div class="field-label">
+                            <i class="fas fa-calendar-day"></i> Day of Month (1-31)
+                            <span class="badge bg-secondary">2</span>
+                        </div>
+                        <div class="field-help">Which day(s) of the month</div>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <button class="option-btn active" data-field="day" data-value="*">Every</button>
+                            <button class="option-btn" data-field="day" data-value="">Specific</button>
+                            <button class="option-btn" data-field="day" data-value="*/">Every N</button>
+                        </div>
+                        <input type="number" class="form-control bg-dark text-light" id="day-val" min="1" max="31" placeholder="1-31" style="display:none">
+                        <div class="every-n-group" id="day-n-group">
+                            <span>Every</span>
+                            <input type="number" id="day-n" min="1" max="31" value="2">
+                            <span>days</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Month -->
+                    <div class="field-group">
+                        <div class="field-label">
+                            <i class="fas fa-calendar-alt"></i> Month (1-12)
+                            <span class="badge bg-secondary">3</span>
+                        </div>
+                        <div class="field-help">Which month(s)</div>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <button class="option-btn active" data-field="month" data-value="*">Every</button>
+                            <button class="option-btn" data-field="month" data-value="">Specific</button>
+                        </div>
+                        <input type="number" class="form-control bg-dark text-light" id="month-val" min="1" max="12" placeholder="1-12" style="display:none">
+                        <select class="form-select bg-dark text-light" id="month-val-select" style="display:none">
+                            <option value="">Select month</option>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Day of Week -->
+                    <div class="field-group">
+                        <div class="field-label">
+                            <i class="fas fa-calendar-week"></i> Day of Week (0-6)
+                            <span class="badge bg-secondary">4</span>
+                        </div>
+                        <div class="field-help">Which day(s) of the week (0=Sunday)</div>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <button class="option-btn active" data-field="weekday" data-value="*">Every</button>
+                            <button class="option-btn" data-field="weekday" data-value="">Specific</button>
+                        </div>
+                        <select class="form-select bg-dark text-light" id="weekday-val" style="display:none">
+                            <option value="">Select day</option>
+                            <option value="0">Sunday</option>
+                            <option value="1">Monday</option>
+                            <option value="2">Tuesday</option>
+                            <option value="3">Wednesday</option>
+                            <option value="4">Thursday</option>
+                            <option value="5">Friday</option>
+                            <option value="6">Saturday</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card p-4 sticky-top" style="top: 20px;">
+                    <h5 class="mb-3"><i class="fas fa-code me-2"></i>Cron Expression</h5>
+                    
+                    <div class="cron-output" id="cron-output">* * * * *</div>
+                    
+                    <div class="text-center text-muted mt-2 mb-4">
+                        <small>minute · hour · day · month · weekday</small>
+                    </div>
+                    
+                    <button class="copy-btn w-100" onclick="copyToClipboard()">
+                        <i class="fas fa-copy me-2"></i>Copy to Clipboard
+                    </button>
+                    
+                    <div class="time-preview mt-4">
+                        <i class="fas fa-play me-2"></i>
+                        <span id="human-readable">Runs every minute</span>
+                    </div>
+                    
+                    <div class="next-runs">
+                        <h6 class="mb-3"><i class="fas fa-list me-2"></i>Next 5 Executions</h6>
+                        <div id="next-runs-list"></div>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-dark rounded">
+                        <h6><i class="fas fa-question-circle me-2"></i>What is cron?</h6>
+                        <p class="small text-muted mb-0">Cron is a time-based job scheduler. A cron expression defines when a task should run using 5 fields: minute, hour, day of month, month, and day of week.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="text-center mt-5 text-muted">
+            <p>Made for developers • No tracking, no ads</p>
+        </footer>
+    </div>
+    
+    <script>
+        let cron = { minute: '*', hour: '*', day: '*', month: '*', weekday: '*' };
+        
+        function buildCron() {
+            cron.minute = getFieldValue('minute');
+            cron.hour = getFieldValue('hour');
+            cron.day = getFieldValue('day');
+            cron.month = getFieldValue('month');
+            cron.weekday = getFieldValue('weekday');
+            
+            const expression = `${cron.minute} ${cron.hour} ${cron.day} ${cron.month} ${cron.weekday}`;
+            document.getElementById('cron-output').textContent = expression;
+            
+            updateHumanReadable();
+            updateNextRuns();
+        }
+        
+        function getFieldValue(field) {
+            const btns = document.querySelectorAll(`[data-field="${field}"]`);
+            const activeBtn = document.querySelector(`[data-field="${field}"].active`);
+            const value = activeBtn.dataset.value;
+            
+            if (value === '*') return '*';
+            if (value === '*/') {
+                const nInput = document.getElementById(`${field}-n`);
+                return nInput ? `*/${nInput.value}` : '*';
+            }
+            if (value === '') {
+                if (field === 'weekday') {
+                    const select = document.getElementById('weekday-val');
+                    return select.value || '*';
+                }
+                if (field === 'month') {
+                    const select = document.getElementById('month-val-select');
+                    return select.value || '*';
+                }
+                const input = document.getElementById(`${field}-val`);
+                return input.value || '*';
+            }
+            return '*';
+        }
+        
+        function updateHumanReadable() {
+            let desc = [];
+            
+            if (cron.minute === '*') desc.push('every minute');
+            else if (cron.minute.startsWith('*/')) desc.push(`every ${cron.minute.slice(2)} minutes`);
+            else desc.push(`at minute ${cron.minute}`);
+            
+            if (cron.hour === '*') desc.push('of every hour');
+            else if (cron.hour.startsWith('*/')) desc.push(`every ${cron.hour.slice(2)} hours`);
+            else desc.push(`at hour ${cron.hour}`);
+            
+            if (cron.day !== '*') {
+                if (cron.day.startsWith('*/')) desc.push(`every ${cron.day.slice(2)} days`);
+                else desc.push(`on day ${cron.day}`);
+            }
+            
+            if (cron.month !== '*') {
+                const months = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                desc.push(`in ${months[parseInt(cron.month)] || cron.month}`);
+            }
+            
+            if (cron.weekday !== '*') {
+                const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+                desc.push(`on ${days[parseInt(cron.weekday)] || cron.weekday}`);
+            }
+            
+            document.getElementById('human-readable').textContent = desc.join(' • ');
+        }
+        
+        function updateNextRuns() {
+            const expression = document.getElementById('cron-output').textContent;
+            const runs = getNextRuns(expression, 5);
+            const container = document.getElementById('next-runs-list');
+            container.innerHTML = runs.map(run => 
+                `<div class="next-run-item">${formatDate(run)}</div>`
+            ).join('');
+        }
+        
+        function getNextRuns(cronExpr, count) {
+            const runs = [];
+            const parts = cronExpr.split(' ');
+            if (parts.length !== 5) return runs;
+            
+            let [min, hour, day, month, weekday] = parts;
+            let date = new Date();
+            date.setSeconds(0);
+            date.setMilliseconds(0);
+            
+            for (let i = 0; i < 1000 && runs.length < count; i++) {
+                date = new Date(date.getTime() + 60000);
+                
+                if (!matchCron(date.getMinutes(), min)) continue;
+                if (!matchCron(date.getHours(), hour)) continue;
+                if (!matchCron(date.getDate(), day)) continue;
+                if (!matchCron(date.getMonth() + 1, month)) continue;
+                if (!matchCron(date.getDay(), weekday)) continue;
+                
+                runs.push(new Date(date));
+            }
+            return runs;
+        }
+        
+        function matchCron(value, pattern) {
+            if (pattern === '*') return true;
+            if (pattern.startsWith('*/')) {
+                const n = parseInt(pattern.slice(2));
+                return value % n === 0;
+            }
+            if (pattern.includes(',')) {
+                return pattern.split(',').map(p => parseInt(p)).includes(value);
+            }
+            if (pattern.includes('-')) {
+                const [start, end] = pattern.split('-').map(p => parseInt(p));
+                return value >= start && value <= end;
+            }
+            return parseInt(pattern) === value;
+        }
+        
+        function formatDate(date) {
+            const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            return `${days[date.getDay()]} ${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+        }
+        
+        function applyPreset(expr) {
+            const parts = expr.split(' ');
+            setFieldValue('minute', parts[0]);
+            setFieldValue('hour', parts[1]);
+            setFieldValue('day', parts[2]);
+            setFieldValue('month', parts[3]);
+            setFieldValue('weekday', parts[4]);
+            buildCron();
+        }
+        
+        function setFieldValue(field, value) {
+            const btns = document.querySelectorAll(`[data-field="${field}"]`);
+            btns.forEach(btn => btn.classList.remove('active'));
+            
+            const input = document.getElementById(`${field}-val`);
+            const nGroup = document.getElementById(`${field}-n-group`);
+            const select = document.getElementById(`${field}-val-select`);
+            const monthSelect = document.getElementById('month-val-select');
+            
+            // Hide all inputs first
+            if (input) input.style.display = 'none';
+            if (nGroup) nGroup.classList.remove('show');
+            if (select) select.style.display = 'none';
+            if (monthSelect) monthSelect.style.display = 'none';
+            
+            if (value === '*') {
+                btns[0].classList.add('active');
+            } else if (value.startsWith('*/')) {
+                btns[2].classList.add('active');
+                if (nGroup) {
+                    nGroup.classList.add('show');
+                    const nInput = document.getElementById(`${field}-n`);
+                    if (nInput) nInput.value = value.slice(2);
+                }
+            } else {
+                btns[1].classList.add('active');
+                if (field === 'weekday' && select) {
+                    select.style.display = 'block';
+                    select.value = value;
+                } else if (field === 'month' && monthSelect) {
+                    monthSelect.style.display = 'block';
+                    monthSelect.value = value;
+                } else if (input) {
+                    input.style.display = 'block';
+                    input.value = value;
+                }
+            }
+        }
+        
+        function copyToClipboard() {
+            const expression = document.getElementById('cron-output').textContent;
+            navigator.clipboard.writeText(expression).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.innerHTML = '<i class="fas fa-check me-2"></i>Copied!';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-copy me-2"></i>Copy to Clipboard';
+                }, 2000);
+            });
+        }
+        
+        // Event listeners
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const field = this.dataset.field;
+                const value = this.dataset.value;
+                
+                document.querySelectorAll(`[data-field="${field}"]`).forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const input = document.getElementById(`${field}-val`);
+                const nGroup = document.getElementById(`${field}-n-group`);
+                const select = document.getElementById(`${field}-val-select`);
+                const monthSelect = document.getElementById('month-val-select');
+                
+                if (input) input.style.display = 'none';
+                if (nGroup) nGroup.classList.remove('show');
+                if (select) select.style.display = 'none';
+                if (monthSelect) monthSelect.style.display = 'none';
+                
+                if (value === '*/') {
+                    if (nGroup) nGroup.classList.add('show');
+                } else if (value === '') {
+                    if (field === 'weekday' && select) {
+                        select.style.display = 'block';
+                    } else if (field === 'month' && monthSelect) {
+                        monthSelect.style.display = 'block';
+                    } else if (input) {
+                        input.style.display = 'block';
+                    }
+                }
+                
+                buildCron();
+            });
+        });
+        
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('change', buildCron);
+            input.addEventListener('input', buildCron);
+        });
+        
+        document.querySelectorAll('select').forEach(select => {
+            select.addEventListener('change', buildCron);
+        });
+        
+        // Initial build
+        buildCron();
+    </script>
+</body>
+</html>
